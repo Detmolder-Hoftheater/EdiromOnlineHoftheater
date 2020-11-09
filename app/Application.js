@@ -1,0 +1,201 @@
+/**
+ *  Edirom Online
+ *  Copyright (C) 2014 The Edirom Project
+ *  http://www.edirom.de
+ *
+ *  Edirom Online is free software: you can redistribute it and/or modify
+ *  it under the terms of the GNU General Public License as published by
+ *  the Free Software Foundation, either version 3 of the License, or
+ *  (at your option) any later version.
+ *
+ *  Edirom Online is distributed in the hope that it will be useful,
+ *  but WITHOUT ANY WARRANTY; without even the implied warranty of
+ *  MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ *  GNU General Public License for more details.
+ *
+ *  You should have received a copy of the GNU General Public License
+ *  along with Edirom Online.  If not, see <http://www.gnu.org/licenses/>.
+ */
+Ext.define('EdiromOnline.Application', {
+    name: 'EdiromOnline',
+    
+    extend: 'Ext.app.Application',
+    
+    controllers:[
+    'AJAXController',
+    'LanguageController',
+    'PreferenceController',
+    'ToolsController',
+    'LinkController',
+    'desktop.Desktop',
+    'desktop.TaskBar',
+    'desktop.TopBar',
+    'navigator.Navigator',
+    'window.AnnotationView',
+    'window.HeaderView',
+    'window.HelpWindow',
+    'window.SingleWindowController',
+    'window.SummaryView',
+    'window.iFrameView',
+    'window.WindowController',
+    'window.XmlView',
+    'window.concordanceNavigator.ConcordanceNavigator',
+    'window.audio.AudioView',
+    'window.search.SearchWindow',
+    'window.source.SourceView',
+    'window.source.PageBasedView',
+    'window.source.MeasureBasedView',
+    'window.source.VerovioView',
+    'window.text.FacsimileView',
+    'window.text.TextFacsimileSplitView',
+    'window.text.TextView'],
+    
+    models:[
+    'EdiromOnline.model.Edition',
+    'EdiromOnline.model.Work'],
+    
+    requires:[
+    'EdiromOnline.view.desktop.App'],
+    
+    //TODO:
+   /* activeEdition: 'xmldb:exist:///db/contents/h-moll/edition.xml',*/
+    /* activeWork: 'edirom_work_743373fb-4dcf-4329-90c0-fd1eacc9ea69', */
+    
+    launch: function () {
+        var me = this;
+        
+        me.addEvents('workSelected');
+        
+        if (window.location.pathname.search(/\/aschenbroedel/i) != -1){
+            me.activeWork = "edirom_work_dc65eff7-be9f-4131-83f7-b1886db2d3f7";
+            me.activeEdition = "xmldb:exist:///db/apps/theater-data/vertaktung/aschenbroedel/edition-HT_Isouard.xml";
+            }
+        else if (window.location.pathname.search(/\/bettelstudent/i) != -1){
+        
+            me.activeWork = "edirom_work_bc49425b-d27b-4f45-a543-02db8a141847";
+             me.activeEdition = "xmldb:exist:///db/apps/theater-data/vertaktung/bettelstudent/edition-HT_Bettelstudent.xml";
+             }
+        else if (window.location.pathname.search(/\/desTeufelsAnteil/i) != -1){
+            me.activeWork = "edirom_work_a86193f5-3761-4a0b-83e3-7b4e45870ddf";
+             me.activeEdition = "xmldb:exist:///db/apps/theater-data/vertaktung/desTeufelsAnteil/edition-Auber_DesTeufelsAnteil.xml";
+    }
+    else if (window.location.pathname.search(/\/unbekannte/i) != -1){
+            me.activeWork = "edirom_work_898989";
+             me.activeEdition = "xmldb:exist:///db/apps/theater-data/vertaktung/unbekannte/edition.xml";
+    }
+    
+    
+    var editionParam = me.getURLParameter('edition');
+        if (editionParam !== null)
+        me.activeEdition = editionParam;
+        
+        Ext.Ajax.request({
+            url: 'data/xql/getEditionURI.xql',
+            async: false,
+            method: 'GET',
+            params: {
+                uri: me.activeEdition
+            },
+            success: function (response) {
+                this.activeEdition = response.responseText;
+            },
+            scope: this
+        });
+        
+        var workParam = me.getURLParameter('work');
+        if (workParam !== null)
+        me.activeWork = workParam;
+        
+        Ext.Ajax.request({
+            url: 'data/xql/getWorkID.xql',
+            async: false,
+            method: 'GET',
+            params: {
+                uri: me.activeEdition,
+                workId: me.activeWork
+            },
+            success: function (response) {
+                this.activeWork = response.responseText;
+            },
+            scope: this
+        });
+        
+        me.getController('PreferenceController').initPreferences(me.activeEdition);
+        me.getController('LanguageController').initLangFile(me.activeEdition);
+        me.initDataStores();
+        
+        var app = Ext.create('EdiromOnline.view.desktop.App', {
+            app: this
+        });
+        
+       /* var match,
+        pl = /\+/g, // Regex for replacing addition symbol with a space
+        search = /([^&=]+)=?([^&]*)/g,
+        decode = function (s) {
+            return decodeURIComponent(s.replace(pl, " "));
+        },
+        query = window.location.search.substring(1);
+        
+        urlParams = {
+        };
+        while (match = search.exec(query))
+        urlParams[decode(match[1])] = decode(match[2]);
+        
+        if (typeof urlParams.uri != 'undefined') {
+            if (window.location.hash != '')
+            urlParams.uri = urlParams.uri + window.location.hash;
+            
+            app.on('ready', Ext.bind(window.loadLink, me,[urlParams.uri, {
+                sort: 'sortGrid'
+            }], false), me, {
+                single: true
+            });
+        }*/
+    },
+    
+    initDataStores: function () {
+        
+        var edition = Ext.create('Ext.data.Store', {
+            model: 'EdiromOnline.model.Edition',
+            storeId: 'Editions'
+        });
+        
+        edition.getProxy().extraParams = {
+            id: this.activeEdition
+        };
+        edition.load();
+        
+        var works = Ext.create('Ext.data.Store', {
+            model: 'EdiromOnline.model.Work',
+            storeId: 'Works'
+        });
+        
+        works.getProxy().extraParams = {
+            editionId: this.activeEdition
+        };
+        works.load();
+    },
+    
+    selectWork: function (workId) {
+        this.activeWork = workId;
+        this.fireEvent('workSelected', workId);
+    },
+    
+    callFunctionOfEdition: function (win, fnName, callback, args) {
+        var me = this;
+        
+        var arguments = Ext.apply({
+            workId: me.activeWork
+        },
+        args);
+        var editions = Ext.getStore('Editions');
+        var editionIndex = editions.find('doc', me.activeEdition);
+        var edition = editions.getAt(editionIndex);
+        
+        edition[fnName](callback, arguments);
+    },
+    
+    getURLParameter: function (parameter) {
+        return decodeURIComponent((new RegExp('[?|&]' + parameter + '=' + '([^&;]+?)(&|#|;|$)').exec(location.search) ||[ null, ''])[1].replace(/\+/g, '%20')) || null;
+    }
+});
