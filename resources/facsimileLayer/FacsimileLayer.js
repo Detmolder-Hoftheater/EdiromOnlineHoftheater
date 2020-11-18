@@ -506,6 +506,11 @@ L.TileLayer.FacsimileLayer = L.TileLayer.extend({
 		}
 	},
 	
+	_loadTile: function (tile, tilePoint) {
+        tile.setAttribute('crossorigin', 'anonymous');
+        L.TileLayer.prototype._loadTile.call(this, tile, tilePoint);
+    },
+	
 	/**
 	 * Create a canvas element to override tileSize of Tilelayer.
 	 * @override
@@ -520,7 +525,6 @@ L.TileLayer.FacsimileLayer = L.TileLayer.extend({
 			ctx.drawImage(this, 0, 0);
 			var imgData = ctx.getImageData(0, 0, this._layer.options.tileSize, this._layer.options.tileSize);
 			ctx.putImageData(imgData, 0, 0);
-			this.crossOrigin = "Anonymous";
 			this.src = ctx.canvas.toDataURL();
 		}
 		
