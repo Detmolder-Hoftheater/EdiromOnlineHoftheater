@@ -520,6 +520,7 @@ L.TileLayer.FacsimileLayer = L.TileLayer.extend({
 			ctx.drawImage(this, 0, 0);
 			var imgData = ctx.getImageData(0, 0, this._layer.options.tileSize, this._layer.options.tileSize);
 			ctx.putImageData(imgData, 0, 0);
+			this.crossOrigin = "Anonymous";
 			this.src = ctx.canvas.toDataURL();
 		}
 		
