@@ -35,6 +35,8 @@ RUN sh build.sh && \
 FROM stadlerpeter/existdb:latest
 LABEL maintainer="Daniel Röwenstrunk <roewenstrunk@uni-paderborn.de>"
 
+ARG DATA_PACKAGE_URL
+
 ENV EXIST_CONTEXT_PATH /
 ENV EXIST_DEFAULT_APP_PATH xmldb:exist:///db/apps/EdiromOnline
 
