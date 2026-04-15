@@ -25,7 +25,7 @@ RUN /opt/Sencha/Cmd/sencha ant clean \
 FROM stadlerpeter/existdb:5
 LABEL maintainer="Daniel Röwenstrunk <roewenstrunk@uni-paderborn.de>"
 
-ARG DATA_PACKAGE_URL
+ARG DATA_PACKAGE_URL="https://github.com/Detmolder-Hoftheater/EdiromOnlineHoftheater/releases/download/v1.0.0/theater-data.xar"
 
 ENV EXIST_CONTEXT_PATH="/"
 ENV EXIST_DEFAULT_APP_PATH="xmldb:exist:///db/apps/EdiromOnline"
